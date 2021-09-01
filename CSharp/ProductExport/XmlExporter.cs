@@ -13,46 +13,61 @@ namespace ProductExport
             xml.Append("<orders>");
             foreach (var order in orders)
             {
-                xml.Append("<order");
-                xml.Append(" id='");
-                xml.Append(order.Id);
-                xml.Append("'>");
-                foreach (var product in order.Products)
-                {
-                    xml.Append("<product");
-                    xml.Append(" id='");
-                    xml.Append(product.Id);
-                    xml.Append("'");
-                    if (product.IsEvent())
-                    {
-                        xml.Append(" stylist='");
-                        xml.Append(StylistFor(product));
-                        xml.Append("'");
-                    }
-
-                    if (product.Weight > 0)
-                    {
-                        xml.Append(" weight='");
-                        xml.Append(product.Weight);
-                        xml.Append("'");
-                    }
-
-                    xml.Append(">");
-                    xml.Append("<price");
-                    xml.Append(" currency='");
-                    xml.Append(product.Price.CurrencyCode);
-                    xml.Append("'>");
-                    xml.Append(product.Price.Amount);
-                    xml.Append("</price>");
-                    xml.Append(product.Name);
-                    xml.Append("</product>");
-                }
-
-                xml.Append("</order>");
+                WriteOrder(xml, order);
             }
 
             xml.Append("</orders>");
             return XmlFormatter.PrettyPrint(xml.ToString());
+        }
+
+        private static void WriteOrder(StringBuilder xml, Order order)
+        {
+            xml.Append("<order");
+            xml.Append(" id='");
+            xml.Append(order.Id);
+            xml.Append("'>");
+            foreach (var product in order.Products)
+            {
+                WriteProduct(xml, product);
+            }
+
+            xml.Append("</order>");
+        }
+
+        private static void WriteProduct(StringBuilder xml, Product product)
+        {
+            xml.Append("<product");
+            xml.Append(" id='");
+            xml.Append(product.Id);
+            xml.Append("'");
+            if (product.IsEvent())
+            {
+                xml.Append(" stylist='");
+                xml.Append(StylistFor(product));
+                xml.Append("'");
+            }
+
+            if (product.Weight > 0)
+            {
+                xml.Append(" weight='");
+                xml.Append(product.Weight);
+                xml.Append("'");
+            }
+
+            xml.Append(">");
+            WritePrice(xml, product);
+            xml.Append(product.Name);
+            xml.Append("</product>");
+        }
+
+        private static void WritePrice(StringBuilder xml, Product product)
+        {
+            xml.Append("<price");
+            xml.Append(" currency='");
+            xml.Append(product.Price.CurrencyCode);
+            xml.Append("'>");
+            xml.Append(product.Price.Amount);
+            xml.Append("</price>");
         }
 
         public static string ExportTaxDetails(List<Order> orders)
