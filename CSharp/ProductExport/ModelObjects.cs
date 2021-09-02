@@ -45,6 +45,14 @@ namespace ProductExport
             return false;
         }
 
+        public double GetTax()
+        {
+            if (IsEvent())
+                return Price.GetAmountInCurrency("USD") * 0.25;
+            else
+                return Price.GetAmountInCurrency("USD") * 0.175;
+        }
+
         public void SaveToDatabase()
         {
             throw new NotImplementedException("missing from this exercise - shouldn't be called from a unit test");
@@ -137,14 +145,7 @@ namespace ProductExport
 
         public double GetTax()
         {
-            var tax = 0D;
-            foreach (var product in Products)
-            {
-                if (product.IsEvent())
-                    tax += product.Price.GetAmountInCurrency("USD") * 0.25;
-                else
-                    tax += product.Price.GetAmountInCurrency("USD") * 0.175;
-            }
+            var tax = Products.Sum(x => x.GetTax());
             if (Date < Util.FromIsoDate("2018-01-01T00:00Z"))
                 tax += 10;
             else
