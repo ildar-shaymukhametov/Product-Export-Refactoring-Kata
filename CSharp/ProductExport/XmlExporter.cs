@@ -45,16 +45,16 @@ namespace ProductExport
                 productTag.AddAttribute("weight", product.Weight);
             }
 
-            WritePrice(productTag, product);
+            WritePrice(productTag, product.Price);
             productTag.AddValue(product.Name);
             parent.Add(productTag);
         }
 
-        private static void WritePrice(TagNode parent, Product product)
+        private static void WritePrice(TagNode parent, Price price)
         {
             var tagNode = new TagNode("price");
-            tagNode.AddAttribute("currency", product.Price.CurrencyCode);
-            tagNode.AddValue(product.Price.Amount.ToString());
+            tagNode.AddAttribute("currency", price.CurrencyCode);
+            tagNode.AddValue(price.Amount.ToString());
             parent.Add(tagNode);
         }
 
