@@ -10,31 +10,28 @@ namespace ProductExport
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            xml.Append("<orders>");
+            var ordersTag = new TagNode("orders");
             foreach (var order in orders)
             {
-                WriteOrder(xml, order);
+                WriteOrder(ordersTag, order);
             }
 
-            xml.Append("</orders>");
+            xml.Append(ordersTag);
             return XmlFormatter.PrettyPrint(xml.ToString());
         }
 
-        private static void WriteOrder(StringBuilder xml, Order order)
+        private static void WriteOrder(TagNode ordersTag, Order order)
         {
-            xml.Append("<order");
-            xml.Append(" id='");
-            xml.Append(order.Id);
-            xml.Append("'>");
+            var orderTag = new TagNode("order");
+            orderTag.AddAttribute("id", order.Id);
             foreach (var product in order.Products)
             {
-                WriteProduct(xml, product);
+                WriteProduct(orderTag, product);
             }
-
-            xml.Append("</order>");
+            ordersTag.Add(orderTag);
         }
 
-        private static void WriteProduct(StringBuilder xml, Product product)
+        private static void WriteProduct(TagNode orderTag, Product product)
         {
             var productTag = new TagNode("product");
             productTag.AddAttribute("id", product.Id);
@@ -50,7 +47,7 @@ namespace ProductExport
 
             WritePrice(productTag, product);
             productTag.AddValue(product.Name);
-            xml.Append(productTag);
+            orderTag.Add(productTag);
         }
 
         private static void WritePrice(TagNode productTag, Product product)
