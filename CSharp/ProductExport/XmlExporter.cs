@@ -18,44 +18,44 @@ namespace ProductExport
 
             xml.Append(ordersTag);
             return XmlFormatter.PrettyPrint(xml.ToString());
-        }
 
-        private static void WriteOrder(TagNode parent, Order order)
-        {
-            var orderTag = new TagNode("order");
-            orderTag.AddAttribute("id", order.Id);
-            foreach (var product in order.Products)
+            static void WriteOrder(TagNode parent, Order order)
             {
-                WriteProduct(orderTag, product);
-            }
-            parent.Add(orderTag);
-        }
-
-        private static void WriteProduct(TagNode parent, Product product)
-        {
-            var productTag = new TagNode("product");
-            productTag.AddAttribute("id", product.Id);
-            if (product.IsEvent())
-            {
-                productTag.AddAttribute("stylist", StylistFor(product));
+                var orderTag = new TagNode("order");
+                orderTag.AddAttribute("id", order.Id);
+                foreach (var product in order.Products)
+                {
+                    WriteProduct(orderTag, product);
+                }
+                parent.Add(orderTag);
             }
 
-            if (product.Weight > 0)
+            static void WriteProduct(TagNode parent, Product product)
             {
-                productTag.AddAttribute("weight", product.Weight);
+                var productTag = new TagNode("product");
+                productTag.AddAttribute("id", product.Id);
+                if (product.IsEvent())
+                {
+                    productTag.AddAttribute("stylist", StylistFor(product));
+                }
+
+                if (product.Weight > 0)
+                {
+                    productTag.AddAttribute("weight", product.Weight);
+                }
+
+                WritePrice(productTag, product.Price);
+                productTag.AddValue(product.Name);
+                parent.Add(productTag);
             }
 
-            WritePrice(productTag, product.Price);
-            productTag.AddValue(product.Name);
-            parent.Add(productTag);
-        }
-
-        private static void WritePrice(TagNode parent, Price price)
-        {
-            var tagNode = new TagNode("price");
-            tagNode.AddAttribute("currency", price.CurrencyCode);
-            tagNode.AddValue(price.Amount);
-            parent.Add(tagNode);
+            static void WritePrice(TagNode parent, Price price)
+            {
+                var tagNode = new TagNode("price");
+                tagNode.AddAttribute("currency", price.CurrencyCode);
+                tagNode.AddValue(price.Amount);
+                parent.Add(tagNode);
+            }
         }
 
         public static string ExportTaxDetails(List<Order> orders)
