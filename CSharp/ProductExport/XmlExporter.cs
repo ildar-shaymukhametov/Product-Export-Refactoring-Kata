@@ -21,40 +21,40 @@ namespace ProductExport
 
             static TagNode ToOrderNode(Order order)
             {
-                var orderTag = new TagNode("order");
-                orderTag.AddAttribute("id", order.Id);
+                var result = new TagNode("order");
+                result.AddAttribute("id", order.Id);
                 foreach (var product in order.Products)
                 {
-                    orderTag.Add(ToProductNode(product));
+                    result.Add(ToProductNode(product));
                 }
-                return orderTag;
+                return result;
             }
 
             static TagNode ToProductNode(Product product)
             {
-                var productTag = new TagNode("product");
-                productTag.AddAttribute("id", product.Id);
+                var result = new TagNode("product");
+                result.AddAttribute("id", product.Id);
                 if (product.IsEvent())
                 {
-                    productTag.AddAttribute("stylist", StylistFor(product));
+                    result.AddAttribute("stylist", StylistFor(product));
                 }
 
                 if (product.Weight > 0)
                 {
-                    productTag.AddAttribute("weight", product.Weight);
+                    result.AddAttribute("weight", product.Weight);
                 }
 
-                productTag.Add(ToPriceNode(product.Price));
-                productTag.AddValue(product.Name);
-                return productTag;
+                result.Add(ToPriceNode(product.Price));
+                result.AddValue(product.Name);
+                return result;
             }
 
             static TagNode ToPriceNode(Price price)
             {
-                var tagNode = new TagNode("price");
-                tagNode.AddAttribute("currency", price.CurrencyCode);
-                tagNode.AddValue(price.Amount);
-                return tagNode;
+                var result = new TagNode("price");
+                result.AddAttribute("currency", price.CurrencyCode);
+                result.AddValue(price.Amount);
+                return result;
             }
         }
 
