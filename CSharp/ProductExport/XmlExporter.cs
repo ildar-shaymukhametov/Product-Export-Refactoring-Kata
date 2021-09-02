@@ -36,36 +36,29 @@ namespace ProductExport
 
         private static void WriteProduct(StringBuilder xml, Product product)
         {
-            xml.Append("<product");
-            xml.Append(" id='");
-            xml.Append(product.Id);
-            xml.Append("'");
+            var productTag = new TagNode("product");
+            productTag.AddAttribute("id", product.Id);
             if (product.IsEvent())
             {
-                xml.Append(" stylist='");
-                xml.Append(StylistFor(product));
-                xml.Append("'");
+                productTag.AddAttribute("stylist", StylistFor(product));
             }
 
             if (product.Weight > 0)
             {
-                xml.Append(" weight='");
-                xml.Append(product.Weight);
-                xml.Append("'");
+                productTag.AddAttribute("weight", product.Weight);
             }
 
-            xml.Append(">");
-            WritePrice(xml, product);
-            xml.Append(product.Name);
-            xml.Append("</product>");
+            WritePrice(productTag, product);
+            productTag.AddValue(product.Name);
+            xml.Append(productTag);
         }
 
-        private static void WritePrice(StringBuilder xml, Product product)
+        private static void WritePrice(TagNode productTag, Product product)
         {
             var tagNode = new TagNode("price");
             tagNode.AddAttribute("currency", product.Price.CurrencyCode);
             tagNode.AddValue(product.Price.Amount.ToString());
-            xml.Append(tagNode);
+            productTag.Add(tagNode);
         }
 
         public static string ExportTaxDetails(List<Order> orders)
