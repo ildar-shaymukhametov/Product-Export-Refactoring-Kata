@@ -54,7 +54,7 @@ namespace ProductExport
         {
             var tagNode = new TagNode("price");
             tagNode.AddAttribute("currency", price.CurrencyCode);
-            tagNode.AddValue(price.Amount.ToString());
+            tagNode.AddValue(price.Amount);
             parent.Add(tagNode);
         }
 
