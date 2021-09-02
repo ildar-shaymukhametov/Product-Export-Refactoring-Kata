@@ -84,6 +84,10 @@ namespace ProductExport
                         tax += product.Price.GetAmountInCurrency("USD") * 0.25;
                     else
                         tax += product.Price.GetAmountInCurrency("USD") * 0.175;
+                }
+
+                foreach (var product in order.Products)
+                {
                     result.Add(ToProductTag(product));
                 }
 
