@@ -13,24 +13,24 @@ namespace ProductExport
             var ordersTag = new TagNode("orders");
             foreach (var order in orders)
             {
-                WriteOrder(ordersTag, order);
+                ordersTag.Add(ToOrderNode(order));
             }
 
             xml.Append(ordersTag);
             return XmlFormatter.PrettyPrint(xml.ToString());
 
-            static void WriteOrder(TagNode parent, Order order)
+            static TagNode ToOrderNode(Order order)
             {
                 var orderTag = new TagNode("order");
                 orderTag.AddAttribute("id", order.Id);
                 foreach (var product in order.Products)
                 {
-                    WriteProduct(orderTag, product);
+                    orderTag.Add(ToProductNode(product));
                 }
-                parent.Add(orderTag);
+                return orderTag;
             }
 
-            static void WriteProduct(TagNode parent, Product product)
+            static TagNode ToProductNode(Product product)
             {
                 var productTag = new TagNode("product");
                 productTag.AddAttribute("id", product.Id);
@@ -44,17 +44,17 @@ namespace ProductExport
                     productTag.AddAttribute("weight", product.Weight);
                 }
 
-                WritePrice(productTag, product.Price);
+                productTag.Add(ToPriceNode(product.Price));
                 productTag.AddValue(product.Name);
-                parent.Add(productTag);
+                return productTag;
             }
 
-            static void WritePrice(TagNode parent, Price price)
+            static TagNode ToPriceNode(Price price)
             {
                 var tagNode = new TagNode("price");
                 tagNode.AddAttribute("currency", price.CurrencyCode);
                 tagNode.AddValue(price.Amount);
-                parent.Add(tagNode);
+                return tagNode;
             }
         }
 
