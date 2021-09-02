@@ -62,12 +62,10 @@ namespace ProductExport
 
         private static void WritePrice(StringBuilder xml, Product product)
         {
-            xml.Append("<price");
-            xml.Append(" currency='");
-            xml.Append(product.Price.CurrencyCode);
-            xml.Append("'>");
-            xml.Append(product.Price.Amount);
-            xml.Append("</price>");
+            var tagNode = new TagNode("price");
+            tagNode.AddAttribute("currency", product.Price.CurrencyCode);
+            tagNode.AddValue(product.Price.Amount.ToString());
+            xml.Append(tagNode);
         }
 
         public static string ExportTaxDetails(List<Order> orders)
