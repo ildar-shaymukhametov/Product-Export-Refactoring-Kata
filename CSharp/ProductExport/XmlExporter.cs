@@ -85,6 +85,10 @@ namespace ProductExport
                     else
                         tax += product.Price.GetAmountInCurrency("USD") * 0.175;
                 }
+                if (order.Date < Util.FromIsoDate("2018-01-01T00:00Z"))
+                    tax += 10;
+                else
+                    tax += 20;
 
                 foreach (var product in order.Products)
                 {
@@ -93,10 +97,6 @@ namespace ProductExport
 
                 var orderTaxTag = new TagNode("orderTax");
                 orderTaxTag.AddAttribute("currency", "USD");
-                if (order.Date < Util.FromIsoDate("2018-01-01T00:00Z"))
-                    tax += 10;
-                else
-                    tax += 20;
                 orderTaxTag.AddValue($"{tax:N2}%");
                 result.Add(orderTaxTag);
                 return result;
