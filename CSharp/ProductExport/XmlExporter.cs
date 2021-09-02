@@ -20,7 +20,7 @@ namespace ProductExport
             return XmlFormatter.PrettyPrint(xml.ToString());
         }
 
-        private static void WriteOrder(TagNode ordersTag, Order order)
+        private static void WriteOrder(TagNode parent, Order order)
         {
             var orderTag = new TagNode("order");
             orderTag.AddAttribute("id", order.Id);
@@ -28,10 +28,10 @@ namespace ProductExport
             {
                 WriteProduct(orderTag, product);
             }
-            ordersTag.Add(orderTag);
+            parent.Add(orderTag);
         }
 
-        private static void WriteProduct(TagNode orderTag, Product product)
+        private static void WriteProduct(TagNode parent, Product product)
         {
             var productTag = new TagNode("product");
             productTag.AddAttribute("id", product.Id);
@@ -47,15 +47,15 @@ namespace ProductExport
 
             WritePrice(productTag, product);
             productTag.AddValue(product.Name);
-            orderTag.Add(productTag);
+            parent.Add(productTag);
         }
 
-        private static void WritePrice(TagNode productTag, Product product)
+        private static void WritePrice(TagNode parent, Product product)
         {
             var tagNode = new TagNode("price");
             tagNode.AddAttribute("currency", product.Price.CurrencyCode);
             tagNode.AddValue(product.Price.Amount.ToString());
-            productTag.Add(tagNode);
+            parent.Add(tagNode);
         }
 
         public static string ExportTaxDetails(List<Order> orders)
