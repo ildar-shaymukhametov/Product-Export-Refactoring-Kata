@@ -23,6 +23,11 @@ namespace ProductExport
         {
             return true;
         }
+
+        public override double GetTax()
+        {
+            return Price.GetAmountInCurrency("USD") * 0.25;
+        }
     }
 
     public class Product
@@ -45,12 +50,9 @@ namespace ProductExport
             return false;
         }
 
-        public double GetTax()
+        public virtual double GetTax()
         {
-            if (IsEvent())
-                return Price.GetAmountInCurrency("USD") * 0.25;
-            else
-                return Price.GetAmountInCurrency("USD") * 0.175;
+            return Price.GetAmountInCurrency("USD") * 0.175;
         }
 
         public void SaveToDatabase()
