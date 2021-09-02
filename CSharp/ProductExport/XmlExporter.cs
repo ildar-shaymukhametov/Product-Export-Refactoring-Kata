@@ -62,27 +62,21 @@ namespace ProductExport
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            WriteOrderTax(orders, xml);
+            xml.Append(ToOrderTaxTag(orders));
             return XmlFormatter.PrettyPrint(xml.ToString());
 
-            static void WriteProduct(StringBuilder xml, Product product)
+            static TagNode ToProductTag(Product product)
             {
-                xml.Append("<product");
-                xml.Append(" id='");
-                xml.Append(product.Id);
-                xml.Append("'");
-                xml.Append(">");
-                xml.Append(product.Name);
-                xml.Append("</product>");
+                var result = new TagNode("product");
+                result.AddAttribute("id", product.Id);
+                result.AddValue(product.Name);
+                return result;
             }
 
-            static void WriteOrder(StringBuilder xml, Order order)
+            static TagNode ToOrderTag(Order order)
             {
-                xml.Append("<order");
-                xml.Append(" date='");
-                xml.Append(Util.ToIsoDate(order.Date));
-                xml.Append("'");
-                xml.Append(">");
+                var result = new TagNode("order");
+                result.AddAttribute("date", Util.ToIsoDate(order.Date));
                 var tax = 0D;
                 foreach (var product in order.Products)
                 {
@@ -90,30 +84,31 @@ namespace ProductExport
                         tax += product.Price.GetAmountInCurrency("USD") * 0.25;
                     else
                         tax += product.Price.GetAmountInCurrency("USD") * 0.175;
-                    WriteProduct(xml, product);
+                    result.Add(ToProductTag(product));
                 }
 
-                xml.Append("<orderTax currency='USD'>");
+                var orderTaxTag = new TagNode("orderTax");
+                orderTaxTag.AddAttribute("currency", "USD");
                 if (order.Date < Util.FromIsoDate("2018-01-01T00:00Z"))
                     tax += 10;
                 else
                     tax += 20;
-                xml.Append($"{tax:N2}%");
-                xml.Append("</orderTax>");
-                xml.Append("</order>");
+                orderTaxTag.AddValue($"{tax:N2}%");
+                result.Add(orderTaxTag);
+                return result;
             }
 
-            static void WriteOrderTax(List<Order> orders, StringBuilder xml)
+            static TagNode ToOrderTaxTag(List<Order> orders)
             {
-                xml.Append("<orderTax>");
+                var result = new TagNode("orderTax");
                 foreach (var order in orders)
                 {
-                    WriteOrder(xml, order);
+                    result.Add(ToOrderTag(order));
                 }
 
                 var totalTax = TaxCalculator.CalculateAddedTax(orders);
-                xml.Append($"{totalTax:N2}%");
-                xml.Append("</orderTax>");
+                result.AddValue($"{totalTax:N2}%");
+                return result;
             }
         }
 
