@@ -108,46 +108,48 @@ namespace ProductExport
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+            xml.Append(ToStoreTag(store));
 
-            xml.Append("<store");
-            xml.Append(" name='");
-            xml.Append(store.Name);
-            xml.Append("'");
-            xml.Append(">");
-            foreach (var product in store.Stock)
+            return XmlFormatter.PrettyPrint(xml.ToString());
+
+            static TagNode ToProductTag(Store store, Product product)
             {
-                xml.Append("<product");
-                xml.Append(" id='");
-                xml.Append(product.Id);
-                xml.Append("'");
+                var result = new TagNode("product");
+                result.AddAttribute("id", product.Id);
                 if (product.IsEvent())
                 {
-                    xml.Append(" location='");
-                    xml.Append(store.Name);
-                    xml.Append("'");
+                    result.AddAttribute("location", store.Name);
                 }
                 else
                 {
-                    xml.Append(" weight='");
-                    xml.Append(product.Weight);
-                    xml.Append("'");
+                    result.AddAttribute("weight", product.Weight);
                 }
 
-                xml.Append(">");
-                xml.Append("<price");
-                xml.Append(" currency='");
-                xml.Append(product.Price.CurrencyCode);
-                xml.Append("'>");
-                xml.Append(product.Price.Amount);
-                xml.Append("</price>");
-                xml.Append(product.Name);
-                xml.Append("</product>");
+                result.Add(ToPriceTag(product.Price));
+                result.AddValue(product.Name);
+                return result;
             }
 
-            xml.Append("</store>");
+            static TagNode ToPriceTag(Price price)
+            {
+                var priceTag = new TagNode("price");
+                priceTag.AddAttribute("currency", price.CurrencyCode);
+                priceTag.AddValue(price.Amount);
+                return priceTag;
+            }
 
-            return XmlFormatter.PrettyPrint(xml.ToString());
+            static TagNode ToStoreTag(Store store)
+            {
+                var result = new TagNode("store");
+                result.AddAttribute("name", store.Name);
+                foreach (var product in store.Stock)
+                {
+                    result.Add((ToProductTag(store, product)));
+                }
+                return result;
+            }
         }
+
 
         public static string ExportHistory(List<Order> orders)
         {
