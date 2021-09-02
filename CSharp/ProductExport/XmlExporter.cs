@@ -150,42 +150,43 @@ namespace ProductExport
             }
         }
 
-
         public static string ExportHistory(List<Order> orders)
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            xml.Append("<orderHistory");
-            xml.Append(" createdAt='");
-            var now = DateTime.Now;
-            xml.Append(Util.ToIsoDate(now));
-            xml.Append("'");
-            xml.Append(">");
-            foreach (var order in orders)
-            {
-                xml.Append("<order");
-                xml.Append(" date='");
-                xml.Append(Util.ToIsoDate(order.Date));
-                xml.Append("'");
-                xml.Append(" totalDollars='");
-                xml.Append(order.TotalDollars());
-                xml.Append("'>");
-                foreach (var product in order.Products)
-                {
-                    xml.Append("<product");
-                    xml.Append(" id='");
-                    xml.Append(product.Id);
-                    xml.Append("'");
-                    xml.Append(">");
-                    xml.Append(product.Name);
-                    xml.Append("</product>");
-                }
+            xml.Append(ToOrderHistoryTag(orders));
+            return XmlFormatter.PrettyPrint(xml.ToString());
 
-                xml.Append("</order>");
+            static TagNode ToProductTag(Product product)
+            {
+                var result = new TagNode("product");
+                result.AddAttribute("id", product.Id);
+                result.AddValue(product.Name);
+                return result;
             }
 
-            xml.Append("</orderHistory>");
-            return XmlFormatter.PrettyPrint(xml.ToString());
+            static TagNode ToOrderTag(Order order)
+            {
+                var result = new TagNode("order");
+                result.AddAttribute("date", Util.ToIsoDate(order.Date));
+                result.AddAttribute("totalDollars", order.TotalDollars());
+                foreach (var product in order.Products)
+                {
+                    result.Add(ToProductTag(product));
+                }
+                return result;
+            }
+
+            static TagNode ToOrderHistoryTag(List<Order> orders)
+            {
+                var result = new TagNode("orderHistory");
+                result.AddAttribute("createdAt", Util.ToIsoDate(DateTime.Now));
+                foreach (var order in orders)
+                {
+                    result.Add(ToOrderTag(order));
+                }
+                return result;
+            }
         }
 
         private static string StylistFor(Product product)
