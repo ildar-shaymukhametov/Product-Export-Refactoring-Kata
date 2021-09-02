@@ -134,5 +134,22 @@ namespace ProductExport
         {
             throw new NotImplementedException("missing from this exercise - shouldn't be called from a unit test");
         }
+
+        public double GetTax()
+        {
+            var tax = 0D;
+            foreach (var product in Products)
+            {
+                if (product.IsEvent())
+                    tax += product.Price.GetAmountInCurrency("USD") * 0.25;
+                else
+                    tax += product.Price.GetAmountInCurrency("USD") * 0.175;
+            }
+            if (Date < Util.FromIsoDate("2018-01-01T00:00Z"))
+                tax += 10;
+            else
+                tax += 20;
+            return tax;
+        }
     }
 }

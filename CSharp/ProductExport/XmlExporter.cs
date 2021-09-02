@@ -85,7 +85,7 @@ namespace ProductExport
 
                 var orderTaxTag = new TagNode("orderTax");
                 orderTaxTag.AddAttribute("currency", "USD");
-                orderTaxTag.AddValue($"{CalculateTax(order):N2}%");
+                orderTaxTag.AddValue($"{order.GetTax():N2}%");
                 result.Add(orderTaxTag);
                 return result;
             }
@@ -101,23 +101,6 @@ namespace ProductExport
                 var totalTax = TaxCalculator.CalculateAddedTax(orders);
                 result.AddValue($"{totalTax:N2}%");
                 return result;
-            }
-
-            static double CalculateTax(Order order)
-            {
-                var tax = 0D;
-                foreach (var product in order.Products)
-                {
-                    if (product.IsEvent())
-                        tax += product.Price.GetAmountInCurrency("USD") * 0.25;
-                    else
-                        tax += product.Price.GetAmountInCurrency("USD") * 0.175;
-                }
-                if (order.Date < Util.FromIsoDate("2018-01-01T00:00Z"))
-                    tax += 10;
-                else
-                    tax += 20;
-                return tax;
             }
         }
 
