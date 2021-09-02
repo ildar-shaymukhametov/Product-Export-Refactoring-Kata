@@ -98,7 +98,7 @@ namespace ProductExport
                     result.Add(ToOrderTag(order));
                 }
 
-                var totalTax = TaxCalculator.CalculateAddedTax(orders);
+                var totalTax = orders.Sum(x => x.GetTax());
                 result.AddValue($"{totalTax:N2}%");
                 return result;
             }
