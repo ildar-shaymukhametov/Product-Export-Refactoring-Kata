@@ -62,8 +62,21 @@ namespace ProductExport
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            xml.Append("<orderTax>");
-            foreach (var order in orders)
+            WriteOrderTax(orders, xml);
+            return XmlFormatter.PrettyPrint(xml.ToString());
+
+            static void WriteProduct(StringBuilder xml, Product product)
+            {
+                xml.Append("<product");
+                xml.Append(" id='");
+                xml.Append(product.Id);
+                xml.Append("'");
+                xml.Append(">");
+                xml.Append(product.Name);
+                xml.Append("</product>");
+            }
+
+            static void WriteOrder(StringBuilder xml, Order order)
             {
                 xml.Append("<order");
                 xml.Append(" date='");
@@ -73,17 +86,11 @@ namespace ProductExport
                 var tax = 0D;
                 foreach (var product in order.Products)
                 {
-                    xml.Append("<product");
-                    xml.Append(" id='");
-                    xml.Append(product.Id);
-                    xml.Append("'");
-                    xml.Append(">");
-                    xml.Append(product.Name);
-                    xml.Append("</product>");
                     if (product.IsEvent())
                         tax += product.Price.GetAmountInCurrency("USD") * 0.25;
                     else
                         tax += product.Price.GetAmountInCurrency("USD") * 0.175;
+                    WriteProduct(xml, product);
                 }
 
                 xml.Append("<orderTax currency='USD'>");
@@ -96,10 +103,18 @@ namespace ProductExport
                 xml.Append("</order>");
             }
 
-            var totalTax = TaxCalculator.CalculateAddedTax(orders);
-            xml.Append($"{totalTax:N2}%");
-            xml.Append("</orderTax>");
-            return XmlFormatter.PrettyPrint(xml.ToString());
+            static void WriteOrderTax(List<Order> orders, StringBuilder xml)
+            {
+                xml.Append("<orderTax>");
+                foreach (var order in orders)
+                {
+                    WriteOrder(xml, order);
+                }
+
+                var totalTax = TaxCalculator.CalculateAddedTax(orders);
+                xml.Append($"{totalTax:N2}%");
+                xml.Append("</orderTax>");
+            }
         }
 
         public static string ExportStore(Store store)
