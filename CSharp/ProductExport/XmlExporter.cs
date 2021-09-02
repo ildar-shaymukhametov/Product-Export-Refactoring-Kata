@@ -77,7 +77,6 @@ namespace ProductExport
             {
                 var result = new TagNode("order");
                 result.AddAttribute("date", Util.ToIsoDate(order.Date));
-                var tax = CalculateTax(order);
 
                 foreach (var product in order.Products)
                 {
@@ -86,7 +85,7 @@ namespace ProductExport
 
                 var orderTaxTag = new TagNode("orderTax");
                 orderTaxTag.AddAttribute("currency", "USD");
-                orderTaxTag.AddValue($"{tax:N2}%");
+                orderTaxTag.AddValue($"{CalculateTax(order):N2}%");
                 result.Add(orderTaxTag);
                 return result;
             }
