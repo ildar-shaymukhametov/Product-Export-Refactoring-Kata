@@ -24,7 +24,7 @@ namespace ProductExport
 
                 if (product.Weight > 0)
                 {
-                    builder.AddAttribute("weight", product.Weight.ToString());
+                    builder.AddAttribute("weight", product.Weight);
                 }
                 builder.AddValue(product.Name);
                 WritePrice(builder, product.Price);
@@ -34,7 +34,7 @@ namespace ProductExport
             {
                 builder.AddToParent("product", "price");
                 builder.AddAttribute("currency", price.CurrencyCode);
-                builder.AddValue(price.Amount.ToString());
+                builder.AddValue(price.Amount);
             }
 
             static void WriteOrder(TagBuilder builder, Order order)

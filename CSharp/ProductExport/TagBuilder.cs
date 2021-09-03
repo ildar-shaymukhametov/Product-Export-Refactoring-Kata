@@ -56,12 +56,12 @@ internal class TagBuilder
         return null;
     }
 
-    internal void AddAttribute(string name, string value)
+    internal void AddAttribute(string name, object value)
     {
         current.AddAttribute(name, value);
     }
 
-    internal void AddValue(string value)
+    internal void AddValue(object value)
     {
         current.AddValue(value);
     }
