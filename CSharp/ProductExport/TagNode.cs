@@ -4,14 +4,16 @@ namespace ProductExport
 {
     public class TagNode
     {
-        private readonly string _name;
         private readonly StringBuilder _attributes;
         private readonly List<TagNode> _children;
         private string _value;
 
+        public string Name { get; }
+        public TagNode Parent { get; set; }
+
         public TagNode(string name)
         {
-            _name = name;
+            Name = name;
             _attributes = new StringBuilder();
             _children = new List<TagNode>();
         }
@@ -32,11 +34,12 @@ namespace ProductExport
 
         public override string ToString()
         {
-            return $"<{_name}{_attributes}>{RenderChildren()}{_value}</{_name}>";
+            return $"<{Name}{_attributes}>{RenderChildren()}{_value}</{Name}>";
         }
 
         public void Add(TagNode tagNode)
         {
+            tagNode.Parent = this;
             _children.Add(tagNode);
         }
 

@@ -35,4 +35,21 @@ public class TagNodeTest
         var expected = $"<orders><order><product></product></order></orders>";
         Assert.Equal(expected, ordersTag.ToString());
     }
+
+    [Fact]
+    public void Parent_initially_null()
+    {
+        var root = new TagNode("root");
+        Assert.Null(root.Parent);
+    }
+
+    [Fact]
+    public void Child_has_parent()
+    {
+        var root = new TagNode("root");
+        var child = new TagNode("child");
+        root.Add(child);
+        Assert.Equal(root, child.Parent);
+        Assert.Equal("root", child.Parent.Name);
+    }
 }
