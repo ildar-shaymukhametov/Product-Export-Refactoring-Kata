@@ -23,6 +23,11 @@ namespace ProductExport
         {
             return true;
         }
+
+        public override double GetTax()
+        {
+            return Price.GetAmountInCurrency("USD") * 0.25;
+        }
     }
 
     public class Product
@@ -43,6 +48,11 @@ namespace ProductExport
         public virtual bool IsEvent()
         {
             return false;
+        }
+
+        public virtual double GetTax()
+        {
+            return Price.GetAmountInCurrency("USD") * 0.175;
         }
 
         public void SaveToDatabase()
@@ -133,6 +143,16 @@ namespace ProductExport
         public void SaveToDatabase()
         {
             throw new NotImplementedException("missing from this exercise - shouldn't be called from a unit test");
+        }
+
+        public double GetTax()
+        {
+            var tax = Products.Sum(x => x.GetTax());
+            if (Date < Util.FromIsoDate("2018-01-01T00:00Z"))
+                tax += 10;
+            else
+                tax += 20;
+            return tax;
         }
     }
 }

@@ -10,175 +10,183 @@ namespace ProductExport
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            xml.Append("<orders>");
+            var ordersTag = new TagNode("orders");
             foreach (var order in orders)
             {
-                xml.Append("<order");
-                xml.Append(" id='");
-                xml.Append(order.Id);
-                xml.Append("'>");
-                foreach (var product in order.Products)
-                {
-                    xml.Append("<product");
-                    xml.Append(" id='");
-                    xml.Append(product.Id);
-                    xml.Append("'");
-                    if (product.IsEvent())
-                    {
-                        xml.Append(" stylist='");
-                        xml.Append(StylistFor(product));
-                        xml.Append("'");
-                    }
-
-                    if (product.Weight > 0)
-                    {
-                        xml.Append(" weight='");
-                        xml.Append(product.Weight);
-                        xml.Append("'");
-                    }
-
-                    xml.Append(">");
-                    xml.Append("<price");
-                    xml.Append(" currency='");
-                    xml.Append(product.Price.CurrencyCode);
-                    xml.Append("'>");
-                    xml.Append(product.Price.Amount);
-                    xml.Append("</price>");
-                    xml.Append(product.Name);
-                    xml.Append("</product>");
-                }
-
-                xml.Append("</order>");
+                ordersTag.Add(ToOrderNode(order));
             }
 
-            xml.Append("</orders>");
+            xml.Append(ordersTag);
             return XmlFormatter.PrettyPrint(xml.ToString());
+
+            static TagNode ToOrderNode(Order order)
+            {
+                var result = new TagNode("order");
+                result.AddAttribute("id", order.Id);
+                foreach (var product in order.Products)
+                {
+                    result.Add(ToProductNode(product));
+                }
+                return result;
+            }
+
+            static TagNode ToProductNode(Product product)
+            {
+                var result = new TagNode("product");
+                result.AddAttribute("id", product.Id);
+                if (product.IsEvent())
+                {
+                    result.AddAttribute("stylist", StylistFor(product));
+                }
+
+                if (product.Weight > 0)
+                {
+                    result.AddAttribute("weight", product.Weight);
+                }
+
+                result.Add(ToPriceNode(product.Price));
+                result.AddValue(product.Name);
+                return result;
+            }
+
+            static TagNode ToPriceNode(Price price)
+            {
+                var result = new TagNode("price");
+                result.AddAttribute("currency", price.CurrencyCode);
+                result.AddValue(price.Amount);
+                return result;
+            }
         }
 
         public static string ExportTaxDetails(List<Order> orders)
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            xml.Append("<orderTax>");
-            foreach (var order in orders)
-            {
-                xml.Append("<order");
-                xml.Append(" date='");
-                xml.Append(Util.ToIsoDate(order.Date));
-                xml.Append("'");
-                xml.Append(">");
-                var tax = 0D;
-                foreach (var product in order.Products)
-                {
-                    xml.Append("<product");
-                    xml.Append(" id='");
-                    xml.Append(product.Id);
-                    xml.Append("'");
-                    xml.Append(">");
-                    xml.Append(product.Name);
-                    xml.Append("</product>");
-                    if (product.IsEvent())
-                        tax += product.Price.GetAmountInCurrency("USD") * 0.25;
-                    else
-                        tax += product.Price.GetAmountInCurrency("USD") * 0.175;
-                }
+            xml.Append(ToOrderTaxTag(orders));
+            return XmlFormatter.PrettyPrint(xml.ToString());
 
-                xml.Append("<orderTax currency='USD'>");
-                if (order.Date < Util.FromIsoDate("2018-01-01T00:00Z"))
-                    tax += 10;
-                else
-                    tax += 20;
-                xml.Append($"{tax:N2}%");
-                xml.Append("</orderTax>");
-                xml.Append("</order>");
+            static TagNode ToProductTag(Product product)
+            {
+                var result = new TagNode("product");
+                result.AddAttribute("id", product.Id);
+                result.AddValue(product.Name);
+                return result;
             }
 
-            var totalTax = TaxCalculator.CalculateAddedTax(orders);
-            xml.Append($"{totalTax:N2}%");
-            xml.Append("</orderTax>");
-            return XmlFormatter.PrettyPrint(xml.ToString());
+            static TagNode ToOrderTag(Order order)
+            {
+                var result = new TagNode("order");
+                result.AddAttribute("date", Util.ToIsoDate(order.Date));
+
+                foreach (var product in order.Products)
+                {
+                    result.Add(ToProductTag(product));
+                }
+
+                var orderTaxTag = new TagNode("orderTax");
+                orderTaxTag.AddAttribute("currency", "USD");
+                orderTaxTag.AddValue($"{order.GetTax():N2}%");
+                result.Add(orderTaxTag);
+                return result;
+            }
+
+            static TagNode ToOrderTaxTag(List<Order> orders)
+            {
+                var result = new TagNode("orderTax");
+                foreach (var order in orders)
+                {
+                    result.Add(ToOrderTag(order));
+                }
+
+                var totalTax = orders.Sum(x => x.GetTax());
+                result.AddValue($"{totalTax:N2}%");
+                return result;
+            }
         }
 
         public static string ExportStore(Store store)
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+            xml.Append(ToStoreTag(store));
 
-            xml.Append("<store");
-            xml.Append(" name='");
-            xml.Append(store.Name);
-            xml.Append("'");
-            xml.Append(">");
-            foreach (var product in store.Stock)
+            return XmlFormatter.PrettyPrint(xml.ToString());
+
+            static TagNode ToProductTag(Store store, Product product)
             {
-                xml.Append("<product");
-                xml.Append(" id='");
-                xml.Append(product.Id);
-                xml.Append("'");
+                var result = new TagNode("product");
+                result.AddAttribute("id", product.Id);
                 if (product.IsEvent())
                 {
-                    xml.Append(" location='");
-                    xml.Append(store.Name);
-                    xml.Append("'");
+                    result.AddAttribute("location", store.Name);
                 }
                 else
                 {
-                    xml.Append(" weight='");
-                    xml.Append(product.Weight);
-                    xml.Append("'");
+                    result.AddAttribute("weight", product.Weight);
                 }
 
-                xml.Append(">");
-                xml.Append("<price");
-                xml.Append(" currency='");
-                xml.Append(product.Price.CurrencyCode);
-                xml.Append("'>");
-                xml.Append(product.Price.Amount);
-                xml.Append("</price>");
-                xml.Append(product.Name);
-                xml.Append("</product>");
+                result.Add(ToPriceTag(product.Price));
+                result.AddValue(product.Name);
+                return result;
             }
 
-            xml.Append("</store>");
+            static TagNode ToPriceTag(Price price)
+            {
+                var priceTag = new TagNode("price");
+                priceTag.AddAttribute("currency", price.CurrencyCode);
+                priceTag.AddValue(price.Amount);
+                return priceTag;
+            }
 
-            return XmlFormatter.PrettyPrint(xml.ToString());
+            static TagNode ToStoreTag(Store store)
+            {
+                var result = new TagNode("store");
+                result.AddAttribute("name", store.Name);
+                foreach (var product in store.Stock)
+                {
+                    result.Add((ToProductTag(store, product)));
+                }
+                return result;
+            }
         }
 
         public static string ExportHistory(List<Order> orders)
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            xml.Append("<orderHistory");
-            xml.Append(" createdAt='");
-            var now = DateTime.Now;
-            xml.Append(Util.ToIsoDate(now));
-            xml.Append("'");
-            xml.Append(">");
-            foreach (var order in orders)
-            {
-                xml.Append("<order");
-                xml.Append(" date='");
-                xml.Append(Util.ToIsoDate(order.Date));
-                xml.Append("'");
-                xml.Append(" totalDollars='");
-                xml.Append(order.TotalDollars());
-                xml.Append("'>");
-                foreach (var product in order.Products)
-                {
-                    xml.Append("<product");
-                    xml.Append(" id='");
-                    xml.Append(product.Id);
-                    xml.Append("'");
-                    xml.Append(">");
-                    xml.Append(product.Name);
-                    xml.Append("</product>");
-                }
+            xml.Append(ToOrderHistoryTag(orders));
+            return XmlFormatter.PrettyPrint(xml.ToString());
 
-                xml.Append("</order>");
+            static TagNode ToProductTag(Product product)
+            {
+                var result = new TagNode("product");
+                result.AddAttribute("id", product.Id);
+                result.AddValue(product.Name);
+                return result;
             }
 
-            xml.Append("</orderHistory>");
-            return XmlFormatter.PrettyPrint(xml.ToString());
+            static TagNode ToOrderTag(Order order)
+            {
+                var result = new TagNode("order");
+                result.AddAttribute("date", Util.ToIsoDate(order.Date));
+                result.AddAttribute("totalDollars", order.TotalDollars());
+                foreach (var product in order.Products)
+                {
+                    result.Add(ToProductTag(product));
+                }
+                return result;
+            }
+
+            static TagNode ToOrderHistoryTag(List<Order> orders)
+            {
+                var result = new TagNode("orderHistory");
+                result.AddAttribute("createdAt", Util.ToIsoDate(DateTime.Now));
+                foreach (var order in orders)
+                {
+                    result.Add(ToOrderTag(order));
+                }
+                return result;
+            }
         }
 
         private static string StylistFor(Product product)
