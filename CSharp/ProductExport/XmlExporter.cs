@@ -10,50 +10,51 @@ namespace ProductExport
         {
             var xml = new StringBuilder();
             xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            var ordersTag = new TagNode("orders");
-            foreach (var order in orders)
-            {
-                ordersTag.Add(ToOrderNode(order));
-            }
-
-            xml.Append(ordersTag);
+            xml.Append(GetBuilder(orders).ToXml());
             return XmlFormatter.PrettyPrint(xml.ToString());
 
-            static TagNode ToOrderNode(Order order)
+            static void WriteProduct(TagBuilder builder, Product product)
             {
-                var result = new TagNode("order");
-                result.AddAttribute("id", order.Id);
-                foreach (var product in order.Products)
-                {
-                    result.Add(ToProductNode(product));
-                }
-                return result;
-            }
-
-            static TagNode ToProductNode(Product product)
-            {
-                var result = new TagNode("product");
-                result.AddAttribute("id", product.Id);
+                builder.AddToParent("order", "product");
+                builder.AddAttribute("id", product.Id);
                 if (product.IsEvent())
                 {
-                    result.AddAttribute("stylist", StylistFor(product));
+                    builder.AddAttribute("stylist", StylistFor(product));
                 }
 
                 if (product.Weight > 0)
                 {
-                    result.AddAttribute("weight", product.Weight);
+                    builder.AddAttribute("weight", product.Weight.ToString());
                 }
-
-                result.Add(ToPriceNode(product.Price));
-                result.AddValue(product.Name);
-                return result;
+                builder.AddValue(product.Name);
+                WritePrice(builder, product.Price);
             }
 
-            static TagNode ToPriceNode(Price price)
+            static void WritePrice(TagBuilder builder, Price price)
             {
-                var result = new TagNode("price");
-                result.AddAttribute("currency", price.CurrencyCode);
-                result.AddValue(price.Amount);
+                builder.AddToParent("product", "price");
+                builder.AddAttribute("currency", price.CurrencyCode);
+                builder.AddValue(price.Amount.ToString());
+            }
+
+            static void WriteOrder(TagBuilder builder, Order order)
+            {
+                builder.AddToParent("orders", "order");
+                builder.AddAttribute("id", order.Id);
+                foreach (var product in order.Products)
+                {
+                    WriteProduct(builder, product);
+                }
+            }
+
+            static TagBuilder GetBuilder(List<Order> orders)
+            {
+                var result = new TagBuilder("orders");
+                foreach (var order in orders)
+                {
+                    WriteOrder(result, order);
+                }
+
                 return result;
             }
         }
